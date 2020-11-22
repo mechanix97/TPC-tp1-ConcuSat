@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
+#include <fstream> 
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -39,7 +40,10 @@ static bool parse_args(int argc, char const *argv[], int* c, int* n,Logger& logg
 int main(int argc, char const *argv[]){
 	int cams = 0;
 	int n_pixels = 0;
-	Logger logger(std::cout);
+
+	std::ofstream ofs ("log.txt", std::ofstream::out);
+
+	Logger logger(ofs);
 
 	if((parse_args(argc, argv, &cams, &n_pixels, logger)) != true){
 		std::cout<<"Usage: ./concusat.out <N° cams> <N° pixels> -d\n";
@@ -71,6 +75,7 @@ int main(int argc, char const *argv[]){
 				}
 
 				SignalHandler::destroy();
+				ofs.close();
 
 				return 0;
 			}
@@ -79,6 +84,10 @@ int main(int argc, char const *argv[]){
 		//generate images and store images
 		for(int i = 0; i<cams; ++i){
 			images[i]->generate();
+			logger.logData("Genero imagen ");
+			logger.logData(i);
+			logger.logData(":\n");
+			logger.logData(*images[i]);
 			sharedMemory[i]->storeArray(images[i]->getData(), n_pixels*n_pixels);
 		}
 
@@ -94,18 +103,20 @@ int main(int argc, char const *argv[]){
 
 		for(int i =0; i<cams; ++i){
 			images[i]->loadFromArray(sharedMemory[i]->load());
+			logger.logData("Recibo imagen ");
+			logger.logData(i);
+			logger.logData(":\n");
+			logger.logData(*images[i]);			
 		}
 
 		//stretch images into one
 		output.stretch(images);
 		
-		logger.logData("Resultado\n");
+		logger.logData("Resultado:\n");
 		logger.logData(output);
-		//std::cout<<output;
 		output.clear();	
 	}
 
-	std::cout << "GracefulQuitter!\n";
 
 	for(int i=0; i<cams; ++i){
 		delete images[i];
@@ -114,6 +125,7 @@ int main(int argc, char const *argv[]){
 	}
 
 	SignalHandler::destroy();
+	ofs.close();
 
 	return 0;
 }
