@@ -45,8 +45,8 @@ int main(int argc, char const *argv[]){
 
 	
 
-	//GracefulQuitter quit;
-	//SignalHandler::getInstance()->registerHandler(SIGTSTP, &quit);
+	GracefulQuitter quit;
+	SignalHandler::getInstance()->registerHandler(SIGTSTP, &quit);
 
 
 	//initialize
@@ -60,19 +60,24 @@ int main(int argc, char const *argv[]){
 		readFifos.push_back( new ReadFifo(std::string("/R"+std::to_string(i)).c_str()) );
 	}
 
-	for( int i = 0; i< cams; ++i){
-		
-		
-	}
-
 	int* buffer;
 	buffer = new int[n_pixels*n_pixels];
 
-	//while(quit.alive()){
-	for(int k=0; k<1; ++k){
+	while(quit.alive()){
 		for( int j = 0; j < cams; ++j ){
 			if(!imageAdjusters[j]->start(j)){
-				goto salida;
+				delete []buffer;
+
+				for(int i=0; i<cams; ++i){
+					delete images[i];
+					delete imageAdjusters[i];	
+					delete writeFifos[i];
+					delete readFifos[i];
+				}
+
+				SignalHandler::destroy();
+
+				return 0;
 			}
 		}
 
@@ -80,38 +85,23 @@ int main(int argc, char const *argv[]){
 		for(int i = 0; i<cams; ++i){
 			images[i]->generate();
 			writeFifos[i]->_open();
-			
-			//while(total){
-			//	total -=
-			writeFifos[i]->_write(static_cast < void *>(images[i]->getData()), images[i]->totalSize());
-					
+			int total = images[i]->totalSize();
+			while(total){
+				total -= writeFifos[i]->_write(static_cast < void *>(images[i]->getData()), total);	
+			}
 			writeFifos[i]->_close();
 		}
 
 		
-
-		for(int b =0; b<cams; ++b){
-			std::cout << b << std::endl;
-			readFifos[b]->_open();
-			std::cout << b << std::endl;
-			//while(total){
-			//	std::cout<<total<<std::endl;
-			//	total-=
-			int total = images[b]->totalSize();
-			std::cout << b << ":" << total << std::endl;
-				readFifos[b]->_read(buffer, total);
-				std::cout << b << std::endl;
-			//}
-			readFifos[b]->_close();
-			std::cout << b << std::endl;
-			for(int l=0; l<4; ++l){
-				std::cout<<l<<": "<<buffer[l]<<std::endl;
+		//filter images
+		for(int i =0; i<cams; ++i){
+			readFifos[i]->_open();
+			int total = images[i]->totalSize();
+			while(total){
+				total-=readFifos[i]->_read(buffer, total);
 			}
-			std::cout << b << std::endl;
-			images[b]->loadFromArray(buffer);
-			std::cout << b << std::endl;
-			std::cout<<images[b];
-			std::cout << "aca" << b << std::endl;
+			readFifos[i]->_close();
+			images[i]->loadFromArray(buffer);
 		}
 
 		//stretch images into one
@@ -120,15 +110,15 @@ int main(int argc, char const *argv[]){
 		output.clear();	
 	}
 
-	std::cout<<"me voy\n";
-
-salida:
-	delete buffer;
+	delete []buffer;
 
 	for(int i=0; i<cams; ++i){
 		delete images[i];
-		//imageAdjusters[i]->stopChild();
 		delete imageAdjusters[i];	
+		writeFifos[i]->destroy();
+		readFifos[i]->destroy();
+		delete writeFifos[i];
+		delete readFifos[i];
 	}
 
 	SignalHandler::destroy();

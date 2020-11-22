@@ -15,15 +15,15 @@ int ImageAdjuster::start(int id){
 		
 		readChannel._open();
 
-		int* buffer;
-		buffer = new int[this->size*this->size];
+		int* buff;
+		buff = new int[this->size*this->size];
 
 			int total = this->image.totalSize();
 			while(total){
-				total-=readChannel._read(buffer, total);
+				total-=readChannel._read(buff, total);
 			}
 
-			this->image.loadFromArray(buffer);
+			this->image.loadFromArray(buff);
 			this->image.filter();
 
 			WriteFifo writeChannel(std::string("/R"+std::to_string(id)).c_str());
@@ -33,7 +33,7 @@ int ImageAdjuster::start(int id){
 				total-=writeChannel._write(static_cast < void *>(this->image.getData()), total);
 			}
 		
-		delete buffer;
+		delete []buff;
 		writeChannel._close();
 		readChannel._close();
 		return pid;

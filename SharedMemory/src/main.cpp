@@ -11,16 +11,25 @@
 #include "../inc/imageAdjuster.h"
 #include "../inc/signalHandler.h"
 #include "../inc/gracefulQuitter.h"
+#include "../inc/logger.h"
 
 #define PATH_NAME "bin/bash"
 
-static bool parse_args(int argc, char const *argv[], int* c, int* n){
-	if(argc != 3){
+static bool parse_args(int argc, char const *argv[], int* c, int* n,Logger& logger ){
+	if(argc != 3 && argc != 4){
 		return false;
 	}
 	try{
 		*c = std::stoi(argv[1]);
 		*n = std::stoi(argv[2]);
+		if(argc == 4){
+			if(strcmp(argv[3],"-d") == 0){
+				logger.turnOn(); 
+			}
+			else{
+				return false;
+			}
+		}
 	} catch(...){
 		return false;
 	}
@@ -30,9 +39,10 @@ static bool parse_args(int argc, char const *argv[], int* c, int* n){
 int main(int argc, char const *argv[]){
 	int cams = 0;
 	int n_pixels = 0;
+	Logger logger(std::cout);
 
-	if((parse_args(argc, argv, &cams, &n_pixels)) != true){
-		std::cout<<"Usage: ./concusat.out <N° cams> <N° pixels>\n";
+	if((parse_args(argc, argv, &cams, &n_pixels, logger)) != true){
+		std::cout<<"Usage: ./concusat.out <N° cams> <N° pixels> -d\n";
 		return 0;
 	}
 
@@ -44,14 +54,12 @@ int main(int argc, char const *argv[]){
 	GracefulQuitter quit;
 	SignalHandler::getInstance()->registerHandler(SIGTSTP, &quit);
 
-
 	//initialize
 	for( int i = 0; i < cams; ++i ){
 		images.push_back( new Image(n_pixels) );
 		sharedMemory.push_back(new SharedMemory<int>(PATH_NAME, i, images[i]->totalSize()) );
 		imageAdjusters.push_back(new ImageAdjuster(n_pixels, i));
 	}
-
 
 	while(quit.alive()){
 		for(ImageAdjuster* ia : imageAdjusters){
@@ -90,9 +98,14 @@ int main(int argc, char const *argv[]){
 
 		//stretch images into one
 		output.stretch(images);
-		std::cout << output;
+		
+		logger.logData("Resultado\n");
+		logger.logData(output);
+		//std::cout<<output;
 		output.clear();	
 	}
+
+	std::cout << "GracefulQuitter!\n";
 
 	for(int i=0; i<cams; ++i){
 		delete images[i];

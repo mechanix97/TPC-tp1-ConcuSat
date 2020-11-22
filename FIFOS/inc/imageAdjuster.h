@@ -15,7 +15,6 @@ public:
 	ImageAdjuster(int imageSize, int proj_id);
 	~ImageAdjuster();
 	int start(int id);
-	void stopChild() const;
 };
 
 #endif

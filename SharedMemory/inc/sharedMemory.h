@@ -39,7 +39,7 @@ SharedMemory<T>::SharedMemory(const std::string& file, const char c, int size){
 		//throw excp
 	}
 	this->data = static_cast<T*> (ptr);
-	*(this->data) = T(2);
+	//*(this->data) = T(2);
 	//memset(this->data, 0, size);
 }
 

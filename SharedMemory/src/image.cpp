@@ -14,7 +14,7 @@ Image::Image(int n) : n(n)  {
 }
 
 Image::~Image(){
-	delete []this->data;
+	delete [] this->data;
 }
 
 int* Image::getData() const{
