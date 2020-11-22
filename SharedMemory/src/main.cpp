@@ -1,22 +1,13 @@
 #include <iostream>
 #include <stdexcept>
 #include <vector>
-#include <fstream> 
+#include <fstream>
 
-#include <sys/types.h>
-#include <unistd.h>
-#include <sys/wait.h>
-
-#include "../inc/image.h"
-#include "../inc/sharedMemory.h"
-#include "../inc/imageAdjuster.h"
 #include "../inc/signalHandler.h"
 #include "../inc/gracefulQuitter.h"
-#include "../inc/logger.h"
+#include "../inc/concusat.h"
 
-#define PATH_NAME "bin/bash"
-
-static bool parse_args(int argc, char const *argv[], int* c, int* n,Logger& logger ){
+static bool parse_args(int argc, char const *argv[], int* c, int* n, bool* log ){
 	if(argc != 3 && argc != 4){
 		return false;
 	}
@@ -25,7 +16,7 @@ static bool parse_args(int argc, char const *argv[], int* c, int* n,Logger& logg
 		*n = std::stoi(argv[2]);
 		if(argc == 4){
 			if(strcmp(argv[3],"-d") == 0){
-				logger.turnOn(); 
+				*log = true;
 			}
 			else{
 				return false;
@@ -40,92 +31,32 @@ static bool parse_args(int argc, char const *argv[], int* c, int* n,Logger& logg
 int main(int argc, char const *argv[]){
 	int cams = 0;
 	int n_pixels = 0;
+	bool log = false;
 
-	std::ofstream ofs ("log.txt", std::ofstream::out);
-
-	Logger logger(ofs);
-
-	if((parse_args(argc, argv, &cams, &n_pixels, logger)) != true){
+	if((parse_args(argc, argv, &cams, &n_pixels, &log)) != true){
 		std::cout<<"Usage: ./concusat.out <N° cams> <N° pixels> -d\n";
 		return 0;
 	}
 
-	std::vector<Image*> images;
-	std::vector<SharedMemory<int>*> sharedMemory;
-	std::vector<ImageAdjuster*> imageAdjusters;
-	Image output(n_pixels);
+	Concusat concusat(cams, n_pixels);
+
+	if(log){
+		concusat.log();
+	}
 
 	GracefulQuitter quit;
 	SignalHandler::getInstance()->registerHandler(SIGTSTP, &quit);
 
-	//initialize
-	for( int i = 0; i < cams; ++i ){
-		images.push_back( new Image(n_pixels) );
-		sharedMemory.push_back(new SharedMemory<int>(PATH_NAME, i, images[i]->totalSize()) );
-		imageAdjusters.push_back(new ImageAdjuster(n_pixels, i));
-	}
-
 	while(quit.alive()){
-		for(ImageAdjuster* ia : imageAdjusters){
-			if(!ia->start()){
-				for(int i=0; i<cams; ++i){
-					delete images[i];
-					delete sharedMemory[i];
-					delete imageAdjusters[i];
-				}
-
-				SignalHandler::destroy();
-				ofs.close();
-
-				return 0;
-			}
+		if(!concusat.fork()){
+			return 0;
 		}
-
-		//generate images and store images
-		for(int i = 0; i<cams; ++i){
-			images[i]->generate();
-			logger.logData("Genero imagen ");
-			logger.logData(i);
-			logger.logData(":\n");
-			logger.logData(*images[i]);
-			sharedMemory[i]->storeArray(images[i]->getData(), n_pixels*n_pixels);
-		}
-
-		//Raise signal in childs
-		for(ImageAdjuster* ia : imageAdjusters){
-			ia->newDataSignal();
-		}
-
-		//wait for child process
-		for(int i = 0; i < cams; ++i){
-			wait(nullptr);
-		}
-
-		for(int i =0; i<cams; ++i){
-			images[i]->loadFromArray(sharedMemory[i]->load());
-			logger.logData("Recibo imagen ");
-			logger.logData(i);
-			logger.logData(":\n");
-			logger.logData(*images[i]);			
-		}
-
-		//stretch images into one
-		output.stretch(images);
-		
-		logger.logData("Resultado:\n");
-		logger.logData(output);
-		output.clear();	
+		concusat.generate();
+		concusat.riseSignal();
+		concusat.waitChilds();
+		concusat.loadFromChilds();
+		concusat.stretch();
 	}
-
-
-	for(int i=0; i<cams; ++i){
-		delete images[i];
-		delete sharedMemory[i];
-		delete imageAdjusters[i];
-	}
-
-	SignalHandler::destroy();
-	ofs.close();
 
 	return 0;
 }
