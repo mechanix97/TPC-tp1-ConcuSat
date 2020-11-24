@@ -1,8 +1,7 @@
 #include "../inc/fifo.h"
 
 Fifo::Fifo(const std::string name) : name(name), fd(-1){
-	//mknod( static_cast<const char*>(this->name.c_str()), S_IFIFO|066, 0);
-	mkfifo(static_cast<const char*>(this->name.c_str()), 066);
+	mknod( static_cast<const char*>(this->name.c_str()), S_IFIFO | 0666, 0);	
 }
 
 Fifo::~Fifo(){

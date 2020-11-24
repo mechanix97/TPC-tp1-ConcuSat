@@ -11,5 +11,6 @@ void WriteFifo::_open(){
 }
 
 ssize_t WriteFifo::_write(const void* buffer, const ssize_t buffsize) const{
-	return write(this->fd, buffer, buffsize);
+	int v =	write(this->fd, buffer, buffsize);
+	return v;
 }
