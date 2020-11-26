@@ -12,7 +12,7 @@
 #include "../inc/imageAdjuster.h"
 #include "../inc/logger.h"
 
-#define PATH_NAME "bin/bash"
+#define PATH_NAME "/bin/bash"
 
 class Concusat{
 	int cams;

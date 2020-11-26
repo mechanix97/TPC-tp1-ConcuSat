@@ -6,7 +6,7 @@
 #include "signalHandler.h"
 #include "gracefulQuitter.h"
 
-#define PATH_NAME "bin/bash"
+#define PATH_NAME "/bin/bash"
 
 class ImageAdjuster{
 	Image image;

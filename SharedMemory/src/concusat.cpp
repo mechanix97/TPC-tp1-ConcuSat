@@ -1,10 +1,10 @@
 #include "../inc/concusat.h"
 
-Concusat::Concusat(int cams, int n) : cams(cams), n_pixels(n), ofs ("log.txt", std::ofstream::out), logger(ofs), output(n){
+Concusat::Concusat(int cams, int n) : cams(cams), n_pixels(n), ofs("log.txt", std::ofstream::out), logger(ofs), output(n){
 	for( int i = 0; i < cams; ++i ){
 		images.push_back( new Image(n_pixels) );
-		sharedMemory.push_back(new SharedMemory<int>(PATH_NAME, i, images[i]->totalSize()) );
-		imageAdjusters.push_back(new ImageAdjuster(n_pixels, i));
+		sharedMemory.push_back(new SharedMemory<int>(PATH_NAME, (char)i+1, images[i]->totalSize()) );
+		imageAdjusters.push_back(new ImageAdjuster(n_pixels, i+1));
 	}
 }
 
@@ -62,18 +62,18 @@ void Concusat::waitChilds(){
 void Concusat::loadFromChilds(){
 	for(int i =0; i<cams; ++i){
 		images[i]->loadFromArray(sharedMemory[i]->load());
-		logger.logData("Recibo imagen ");
-		logger.logData(i);
-		logger.logData(":\n");
-		logger.logData(*images[i]);			
+		this->logger.logData("Recibo imagen ");
+		this->logger.logData(i);
+		this->logger.logData(":\n");
+		this->logger.logData(*this->images[i]);			
 	}	
 }
 
 void Concusat::stretch(){
 	//stretch images into one
-	output.stretch(images);
+	this->output.stretch(images);
 	
-	logger.logData("Resultado:\n");
-	logger.logData(output);
-	output.clear();	
+	this->logger.logData("Resultado:\n");
+	this->logger.logData(this->output);
+	this->output.clear();	
 }

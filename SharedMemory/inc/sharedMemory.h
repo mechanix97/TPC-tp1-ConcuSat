@@ -23,6 +23,8 @@ private:
 };
 
 
+#include <iostream>
+
 template <class T>
 SharedMemory<T>::SharedMemory(const std::string& file, const char c, int size){
 	key_t key = ftok(file.c_str(), c);

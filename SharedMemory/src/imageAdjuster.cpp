@@ -2,7 +2,7 @@
 
 
 ImageAdjuster::ImageAdjuster(int imageSize, int proj_id) : image(imageSize), size(imageSize),
-	sm(PATH_NAME, proj_id, image.totalSize()){
+	sm(PATH_NAME, (char)proj_id, image.totalSize()){
 }
 
 
