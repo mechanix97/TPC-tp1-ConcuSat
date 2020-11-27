@@ -2,6 +2,7 @@
 #define _READFIFO_H_
 
 #include "fifo.h"
+#include "../inc/exception.h"
 
 class ReadFifo : public Fifo{
 public:

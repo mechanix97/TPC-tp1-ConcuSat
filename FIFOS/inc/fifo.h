@@ -7,6 +7,8 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+#include "../inc/exception.h"
+
 class Fifo{
 public:
 	Fifo(const std::string name);

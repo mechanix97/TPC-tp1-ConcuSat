@@ -2,6 +2,7 @@
 #define _WRITEFIFO_H_
 
 #include "fifo.h"
+#include "../inc/exception.h"
 
 class WriteFifo : public Fifo{
 public:

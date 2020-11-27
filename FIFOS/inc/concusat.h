@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <fstream>
+#include <iostream>
 
 #include <sys/types.h>
 #include <unistd.h>
@@ -12,9 +13,8 @@
 #include "../inc/imageAdjuster.h"
 #include "../inc/writeFifo.h"
 #include "../inc/readFifo.h"
-#include "logger.h"
-
-#define PATH_NAME "bin/bash"
+#include "../inc/logger.h"
+#include "../inc/exception.h"
 
 class Concusat{
 	int cams;

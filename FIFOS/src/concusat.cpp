@@ -8,8 +8,8 @@ Concusat::Concusat(int cams, int n) : cams(cams), n_pixels(n), ofs("log.txt", st
 	for( int i = 0; i < cams; ++i ){
 		this->images.push_back( new Image(this->n_pixels) );
 		this->imageAdjusters.push_back(new ImageAdjuster(this->n_pixels, i));
-		this->writeFifos.push_back(new WriteFifo(std::string("/W"+std::to_string(i)).c_str()) );
-		this->readFifos.push_back( new ReadFifo(std::string("/R"+std::to_string(i)).c_str()) );
+		this->writeFifos.push_back(new WriteFifo(std::string("W"+std::to_string(i)).c_str()) );
+		this->readFifos.push_back( new ReadFifo(std::string("R"+std::to_string(i)).c_str()) );
 	}
 }
 
@@ -51,7 +51,7 @@ void Concusat::generate(){
 		this->logger.logData(i);
 		this->logger.logData(":\n");
 		this->logger.logData(*this->images[i]);
-		this->writeFifos[i]->_open();
+		this->writeFifos[i]->_open();	
 		int total = this->images[i]->totalSize();
 		while(total){
 			total -= this->writeFifos[i]->_write(static_cast < void *>(this->images[i]->getData()), total);	
@@ -64,7 +64,7 @@ void Concusat::generate(){
 void Concusat::filter(){
 	//filter images
 	for(int i =0; i<this->cams; ++i){
-		this->readFifos[i]->_open();
+		this->readFifos[i]->_open();	
 		int total = this->images[i]->totalSize();
 		int max_reads = 30;
 		while(total && max_reads){

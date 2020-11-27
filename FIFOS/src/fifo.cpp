@@ -1,7 +1,10 @@
 #include "../inc/fifo.h"
 
 Fifo::Fifo(const std::string name) : name(name), fd(-1){
-	mknod( static_cast<const char*>(this->name.c_str()), S_IFIFO | 0666, 0);	
+	unlink(this->name.c_str());
+	if(mknod( this->name.c_str(), S_IFIFO | 0666, 0) == -1){
+		throw Exception("Error", "Failed to create FIFO");
+	}
 }
 
 Fifo::~Fifo(){

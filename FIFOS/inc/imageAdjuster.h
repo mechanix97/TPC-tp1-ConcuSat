@@ -1,11 +1,14 @@
 #ifndef _IMAGE_ADJUSTER_H_
 #define _IMAGE_ADJUSTER_H_
 
-#include "image.h"
-#include "signalHandler.h"
-#include "gracefulQuitter.h"
+#include <iostream>
+
+#include "../inc/image.h"
+#include "../inc/signalHandler.h"
+#include "../inc/gracefulQuitter.h"
 #include "../inc/writeFifo.h"
 #include "../inc/readFifo.h"
+#include "../inc/exception.h"
 
 class ImageAdjuster{
 	Image image;

@@ -20,3 +20,5 @@ out/%.o: src/%.cpp
 
 clean:
 	rm -rf out
+	rm concusat.out
+	rm log.txt

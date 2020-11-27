@@ -28,7 +28,7 @@ int Image::totalSize() const{
 void Image::generate(){
 	for(int i = 0; i < this->n; ++i){
 		for(int j = 0; j< this->n; ++j){
-			this->data[(i*this->n)+j] = 1;//std::rand();
+			this->data[(i*this->n)+j] = std::rand();
 		}
 	}
 }
