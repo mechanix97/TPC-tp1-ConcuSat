@@ -51,7 +51,7 @@ void Concusat::generate(){
 		this->logger.logData(i);
 		this->logger.logData(":\n");
 		this->logger.logData(*this->images[i]);
-		this->writeFifos[i]->_open();	
+		this->writeFifos[i]->_open();
 		int total = this->images[i]->totalSize();
 		while(total){
 			total -= this->writeFifos[i]->_write(static_cast < void *>(this->images[i]->getData()), total);	
@@ -66,12 +66,8 @@ void Concusat::filter(){
 	for(int i =0; i<this->cams; ++i){
 		this->readFifos[i]->_open();	
 		int total = this->images[i]->totalSize();
-		int max_reads = 30;
-		while(total && max_reads){
+		while(total){
 			total-= this->readFifos[i]->_read(buffer, total);
-			max_reads--;
-		}
-		if(!max_reads){
 
 		}
 		this->readFifos[i]->_close();

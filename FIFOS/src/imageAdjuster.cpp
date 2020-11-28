@@ -13,15 +13,14 @@ int ImageAdjuster::start(int id){
 		try{
 			ReadFifo readChannel(std::string("W"+std::to_string(id)).c_str());			
 			readChannel._open();
-			
+
+
 			int* buff;
 			buff = new int[this->size*this->size];
 
 			int total = this->image.totalSize();
-			int max_reads = 30;
-			while(total && max_reads){
+			while(total){
 				total-=readChannel._read(buff, total);
-				max_reads--;
 			}
 
 			this->image.loadFromArray(buff);

@@ -28,40 +28,37 @@ static bool parse_args(int argc, char const *argv[], int* c, int* n, bool* log )
 }
 
 int main(int argc, char const *argv[]){
-	try{
-		int cams = 0;
-		int n_pixels = 0;
-		bool log = false;
+	int cams = 0;
+	int n_pixels = 0;
+	bool log = false;
 
-		if((parse_args(argc, argv, &cams, &n_pixels, &log)) != true){
-			std::cout<<"Usage: ./concusat.out <N° cams> <N° pixels> -d\n";
-			return 0;
-		}
+	if((parse_args(argc, argv, &cams, &n_pixels, &log)) != true){
+		std::cout<<"Usage: ./concusat.out <N° cams> <N° pixels> -d\n";
+		return 0;
+	}
 
-		Concusat concusat(cams, n_pixels);
+	Concusat concusat(cams, n_pixels);
 
-		if(log){
-			concusat.log();
-		}
+	if(log){
+		concusat.log();
+	}
 
-		GracefulQuitter quit;
-		SignalHandler::getInstance()->registerHandler(SIGTSTP, &quit);
+	GracefulQuitter quit;
+	SignalHandler::getInstance()->registerHandler(SIGTSTP, &quit);
 
-		while(quit.alive()){
+	while(quit.alive()){
+		try{
 			if(!concusat.fork()){
 				return 0;
 			}
 			concusat.generate();
 			concusat.filter();
-			concusat.stretch();		
+			concusat.stretch();
+		} catch(Exception& e){
+			std::cout <<"main: "<< e.what() << std::endl;
 		}
-
-		concusat.destroyFifos();
-
-		return 0;
-	} catch(Exception& e){
-		std::cout << e.what() << std::endl;
-		exit(1);
 	}
-		
+	
+	concusat.destroyFifos();
+	return 0;	
 }
